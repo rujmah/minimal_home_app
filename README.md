@@ -1,4 +1,4 @@
-# Minimal Home - Android Launcher
+D# Minimal Home - Android Launcher
 
 A minimal, elegant Android home launcher designed for simplicity and efficiency. Built specifically for Samsung Galaxy S24+ and modern Android devices.
 

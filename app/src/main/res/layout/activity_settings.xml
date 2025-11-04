@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <Button
+                android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:text="←"
+                android:textSize="24sp"
+                android:textColor="@color/white"
+                android:background="@color/dark_gray" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/settings"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center"
+                android:layout_marginEnd="48dp" />
+        </LinearLayout>
+
+        <!-- Background Settings -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/background_settings"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/backgroundColorButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/background_color"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/dark_gray"
+            android:padding="16dp" />
+
+        <!-- App Settings -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apps"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clock_app"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <Button
+            android:id="@+id/clockAppButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Default"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/dark_gray"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/calendar_app"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <Button
+            android:id="@+id/calendarAppButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Default"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/dark_gray"
+            android:padding="16dp" />
+
+        <!-- Notion Settings -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/notion_settings"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/notion_api_key"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/notionApiKeyInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="secret_..."
+            android:textColor="@color/white"
+            android:textColorHint="@color/gray"
+            android:background="@color/dark_gray"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            android:inputType="textPassword" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/notion_database_id"
+            android:textColor="@color/gray"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/notionDatabaseIdInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Database ID"
+            android:textColor="@color/white"
+            android:textColorHint="@color/gray"
+            android:background="@color/dark_gray"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/saveNotionButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Notion Settings"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/dark_gray"
+            android:padding="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tip: Create a Notion integration at notion.so/my-integrations and share your calendar database with it."
+            android:textColor="@color/gray"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="32dp" />
+
+    </LinearLayout>
+</ScrollView>

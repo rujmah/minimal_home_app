@@ -2,7 +2,9 @@ package com.minimal.home
 
 import android.animation.ObjectAnimator
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +13,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.EditText
+import android.widget.ImageView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.WindowCompat
@@ -18,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,10 +33,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var rootLayout: ConstraintLayout
     private lateinit var appDrawer: ConstraintLayout
+    private lateinit var clockContainer: View
     private lateinit var searchEditText: EditText
     private lateinit var appsRecyclerView: RecyclerView
+    private lateinit var calendarEventsRecyclerView: RecyclerView
+    private lateinit var settingsIcon: ImageView
     private lateinit var appsAdapter: AppsAdapter
+    private lateinit var calendarEventAdapter: CalendarEventAdapter
     private lateinit var gestureDetector: GestureDetector
+    private lateinit var prefs: SharedPreferences
 
     private var isDrawerOpen = false
     private val SWIPE_THRESHOLD = 100
@@ -41,20 +51,36 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Enable edge-to-edge display
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Enable edge-to-edge display with system bars visible
+        WindowCompat.setDecorFitsSystemWindows(window, true)
         setupSystemBars()
+
+        // Initialize preferences
+        prefs = getSharedPreferences("MinimalHomePrefs", MODE_PRIVATE)
 
         // Initialize views
         rootLayout = findViewById(R.id.rootLayout)
         appDrawer = findViewById(R.id.appDrawer)
+        clockContainer = findViewById(R.id.clockContainer)
         searchEditText = findViewById(R.id.searchEditText)
         appsRecyclerView = findViewById(R.id.appsRecyclerView)
+        calendarEventsRecyclerView = findViewById(R.id.calendarEventsRecyclerView)
+        settingsIcon = findViewById(R.id.settingsIcon)
 
-        // Setup RecyclerView
+        // Apply background color from preferences
+        val bgColor = prefs.getInt("background_color", Color.BLACK)
+        rootLayout.setBackgroundColor(bgColor)
+        appDrawer.setBackgroundColor(bgColor)
+
+        // Setup RecyclerView for apps
         appsAdapter = AppsAdapter(emptyList())
         appsRecyclerView.layoutManager = GridLayoutManager(this, 4)
         appsRecyclerView.adapter = appsAdapter
+
+        // Setup RecyclerView for calendar events
+        calendarEventAdapter = CalendarEventAdapter(emptyList())
+        calendarEventsRecyclerView.layoutManager = LinearLayoutManager(this)
+        calendarEventsRecyclerView.adapter = calendarEventAdapter
 
         // Setup gesture detector for swipe up
         setupGestureDetector()
@@ -62,15 +88,31 @@ class MainActivity : AppCompatActivity() {
         // Setup search functionality
         setupSearch()
 
+        // Setup clock click listener
+        setupClockClickListener()
+
+        // Setup settings click listener
+        settingsIcon.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        // Setup back button handling
+        setupBackPressHandler()
+
         // Load apps
         loadInstalledApps()
+
+        // Load calendar events
+        loadCalendarEvents()
     }
 
     private fun setupSystemBars() {
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+        // Show the system bars (status bar and navigation bar)
+        windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+        // Make the system bars visible and persistent
         windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+            WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
     }
 
     private fun setupGestureDetector() {
@@ -126,6 +168,81 @@ class MainActivity : AppCompatActivity() {
         searchEditText.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus && !isDrawerOpen) {
                 openDrawer()
+            }
+        }
+    }
+
+    private fun setupClockClickListener() {
+        clockContainer.setOnClickListener {
+            openClockApp()
+        }
+    }
+
+    private fun openClockApp() {
+        val selectedClockApp = prefs.getString("clock_app", null)
+
+        try {
+            if (selectedClockApp != null) {
+                // Try to launch the user-selected clock app
+                val pm = packageManager
+                val launchIntent = pm.getLaunchIntentForPackage(selectedClockApp)
+                if (launchIntent != null) {
+                    startActivity(launchIntent)
+                    return
+                }
+            }
+
+            // Fallback: Try to open the clock app using the standard intent
+            val intent = Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        } catch (e: Exception) {
+            // If the standard intent doesn't work, try to find and launch the clock app
+            try {
+                val pm = packageManager
+                // Common clock package names
+                val clockPackages = listOf(
+                    "com.google.android.deskclock",  // Google Clock
+                    "com.android.deskclock",         // AOSP Clock
+                    "com.sec.android.app.clockpackage", // Samsung Clock
+                )
+
+                for (packageName in clockPackages) {
+                    try {
+                        val launchIntent = pm.getLaunchIntentForPackage(packageName)
+                        if (launchIntent != null) {
+                            startActivity(launchIntent)
+                            return
+                        }
+                    } catch (ex: Exception) {
+                        continue
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun loadCalendarEvents() {
+        val apiKey = prefs.getString("notion_api_key", null)
+        val databaseId = prefs.getString("notion_database_id", null)
+
+        if (apiKey.isNullOrEmpty() || databaseId.isNullOrEmpty()) {
+            // No Notion credentials configured
+            calendarEventsRecyclerView.visibility = View.GONE
+            return
+        }
+
+        lifecycleScope.launch {
+            val notionClient = NotionApiClient(apiKey, databaseId)
+            val events = notionClient.fetchUpcomingEvents()
+
+            if (events.isNotEmpty()) {
+                calendarEventsRecyclerView.visibility = View.VISIBLE
+                calendarEventAdapter.updateEvents(events)
+            } else {
+                calendarEventsRecyclerView.visibility = View.GONE
             }
         }
     }
@@ -186,17 +303,28 @@ class MainActivity : AppCompatActivity() {
         searchEditText.setText("")
     }
 
-    override fun onBackPressed() {
-        if (isDrawerOpen) {
-            closeDrawer()
-        } else {
-            // Do nothing - prevent exiting the launcher
-        }
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (isDrawerOpen) {
+                    closeDrawer()
+                }
+                // Do nothing when drawer is closed - prevent exiting the launcher
+            }
+        })
     }
 
     override fun onResume() {
         super.onResume()
         // Reload apps when returning to launcher
         loadInstalledApps()
+
+        // Apply background color from preferences (in case it changed in settings)
+        val bgColor = prefs.getInt("background_color", Color.BLACK)
+        rootLayout.setBackgroundColor(bgColor)
+        appDrawer.setBackgroundColor(bgColor)
+
+        // Reload calendar events
+        loadCalendarEvents()
     }
 }
